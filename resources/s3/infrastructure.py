@@ -11,7 +11,7 @@ class S3Buckets(Construct):
         super().__init__(scope, id_)
 
         self.s3_source_documents_bucket = s3.Bucket(self, f"{constants.CDK_APP_NAME}-s3-source-document-bucket",
-            bucket_name=constants.S3_SOURCE_DOCUMENTS,
+            bucket_name=constants.S3_SOURCE_DOCUMENTS_BUCKET,
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             encryption=s3.BucketEncryption.S3_MANAGED,
             enforce_ssl=True,
@@ -34,7 +34,7 @@ class S3Buckets(Construct):
 
 
         self.s3_index_store = s3.Bucket(self, f"{constants.CDK_APP_NAME}-s3-indexer-store-bucket",
-            bucket_name=constants.S3_INDEX_STORE,
+            bucket_name=constants.S3_INDEX_STORE_BUCKET,
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             encryption=s3.BucketEncryption.S3_MANAGED,
             enforce_ssl=True,

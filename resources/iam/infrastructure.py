@@ -10,16 +10,16 @@ class IAMRoles(Construct):
         super().__init__(scope, id_)
 
          # Iam role for bot to invoke lambda
-        lex_role = iam.Role(self, f"{constants.CDK_APP_NAME}-lex-role",
+        self.lex_role = iam.Role(self, f"{constants.CDK_APP_NAME}-lex-role",
             assumed_by=iam.ServicePrincipal("lexv2.amazonaws.com")
         )
-        lex_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AWSLambdaExecute")) 
+        self.lex_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AWSLambdaExecute")) 
 
         # Iam role for lambda to invoke sagemaker
-        lambda_role = iam.Role(self, f"{constants.CDK_APP_NAME}-lambda-role",
+        self.lambda_role = iam.Role(self, f"{constants.CDK_APP_NAME}-lambda-role",
             assumed_by=iam.ServicePrincipal("lambda.amazonaws.com")
         )
-        lambda_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSageMakerFullAccess"))
-        lambda_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess")) 
+        self.lambda_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSageMakerFullAccess"))
+        self.lambda_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess")) 
 
 
