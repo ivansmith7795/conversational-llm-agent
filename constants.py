@@ -29,4 +29,3 @@ DEV_ENV = cdk.Environment(account=CDK_ACCOUNT, region=CDK_REGION)
 
 S3_SOURCE_DOCUMENTS = "conversational-bot-source-documents-" + str(CDK_ACCOUNT) + "-" + str(CDK_REGION)
 S3_INDEX_STORE = "conversational-bot-index-store-" + str(CDK_ACCOUNT) + "-" + str(CDK_REGION)
-
