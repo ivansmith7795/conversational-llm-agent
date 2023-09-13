@@ -42,7 +42,7 @@ SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
 
 LOCAL_INDEX_LOC = "/tmp/index_files"
 
-def lambda_handler(event, context):
+def handler(event, context):
     
     s3_resource = boto3.resource('s3')
     
@@ -127,8 +127,7 @@ def main():
     """
     Test the function when called from the commandline.
     """
-    
-    lambda_handler({}, {})
+    handler({}, {})
 
 
 class CustomLLM(LLM):
