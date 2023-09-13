@@ -12,7 +12,7 @@ class LambdaFunctions(Construct):
         super().__init__(scope, id_)
 
         # lambda function for on demand index creation
-        build_index_function = lambdafunction.DockerImageFunction(self, f"{constants.CDK_APP_NAME}-indexer-lambda-function", 
+        self.build_index_function = lambdafunction.DockerImageFunction(self, f"{constants.CDK_APP_NAME}-indexer-lambda-function", 
             function_name=f"{constants.CDK_APP_NAME}-indexer-function",
             code=lambdafunction.DockerImageCode.from_image_asset("resources/ecr/runtime/index_creator/"),
             environment={
@@ -37,7 +37,7 @@ class LambdaFunctions(Construct):
         #source_bucket.add_event_notification(s3.EventType.OBJECT_CREATED, s3n.LambdaDestination(read_source_and_build_index_function))
 
         # # lambda function for our inference
-        inference_function = lambdafunction.DockerImageFunction(self, f"{constants.CDK_APP_NAME}-inference-lambda-function", 
+        self.inference_function = lambdafunction.DockerImageFunction(self, f"{constants.CDK_APP_NAME}-inference-lambda-function", 
             function_name=f"{constants.CDK_APP_NAME}-inference-function",
             code=lambdafunction.DockerImageCode.from_image_asset("resources/ecr/runtime/inference/"),
              environment={
@@ -51,4 +51,4 @@ class LambdaFunctions(Construct):
             memory_size=10240,
             timeout=Duration.minutes(5)
         )
-        inference_function.grant_invoke(iam.ServicePrincipal("lexv2.amazonaws.com"))
+        self.inference_function.grant_invoke(iam.ServicePrincipal("lexv2.amazonaws.com"))
