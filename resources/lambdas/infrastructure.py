@@ -35,16 +35,16 @@ class LambdaFunctions(Construct):
 
         #source_bucket.add_event_notification(s3.EventType.OBJECT_CREATED, s3n.LambdaDestination(read_source_and_build_index_function))
 
-        # # lambda function for our inference
-        inference_function = lambdafunction.DockerImageFunction(self, f"{constants.CDK_APP_NAME}-inference-lambda-function", 
-            function_name=f"{constants.CDK_APP_NAME}-inference-function",
-            code=lambdafunction.DockerImageCode.from_image_asset("resources/ecr/runtime/inference/"),
-             environment={
-                    'S3_SOURCE_DOCUMENTS_BUCKET': constants.S3_SOURCE_DOCUMENTS_BUCKET,
-                    'S3_INDEX_STORE_BUCKET': constants.S3_INDEX_STORE_BUCKET
-            },
-            role=lambda_role,
-            memory_size=10240,
-            timeout=Duration.minutes(5)
-        )
-        inference_function.grant_invoke(iam.ServicePrincipal("lexv2.amazonaws.com"))
+        # # # lambda function for our inference
+        # inference_function = lambdafunction.DockerImageFunction(self, f"{constants.CDK_APP_NAME}-inference-lambda-function", 
+        #     function_name=f"{constants.CDK_APP_NAME}-inference-function",
+        #     code=lambdafunction.DockerImageCode.from_image_asset("resources/ecr/runtime/inference/"),
+        #      environment={
+        #             'S3_SOURCE_DOCUMENTS_BUCKET': constants.S3_SOURCE_DOCUMENTS_BUCKET,
+        #             'S3_INDEX_STORE_BUCKET': constants.S3_INDEX_STORE_BUCKET
+        #     },
+        #     role=lambda_role,
+        #     memory_size=10240,
+        #     timeout=Duration.minutes(5)
+        # )
+        # inference_function.grant_invoke(iam.ServicePrincipal("lexv2.amazonaws.com"))
