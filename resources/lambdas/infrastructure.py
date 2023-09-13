@@ -18,6 +18,7 @@ class LambdaFunctions(Construct):
             environment={
                     'DEFAULT_ACCOUNT': constants.CDK_ACCOUNT,
                     'DEFAULT_REGION': constants.CDK_REGION,
+                    'SAGEMAKER_MODEL_ENDPOINT_NAME': constants.SAGEMAKER_MODEL_ENDPOINT_NAME,
                     'S3_SOURCE_DOCUMENTS_BUCKET': constants.S3_SOURCE_DOCUMENTS_BUCKET,
                     'S3_INDEX_STORE_BUCKET': constants.S3_INDEX_STORE_BUCKET
             },

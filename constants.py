@@ -27,5 +27,6 @@ VPC_ID = const_helpers.find_VPCID(CDK_ACCOUNT)
 
 DEV_ENV = cdk.Environment(account=CDK_ACCOUNT, region=CDK_REGION)
 
+SAGEMAKER_MODEL_ENDPOINT_NAME = "model"
 S3_SOURCE_DOCUMENTS_BUCKET = "conversational-bot-source-documents-" + str(CDK_ACCOUNT) + "-" + str(CDK_REGION)
 S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-" + str(CDK_ACCOUNT) + "-" + str(CDK_REGION)
