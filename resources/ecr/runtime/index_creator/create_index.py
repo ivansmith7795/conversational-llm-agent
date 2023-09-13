@@ -38,8 +38,8 @@ SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
 
 # AWS_REGION = "us-east-1"
 # AWS_ACCOUNT = "413034898429"
-# S3_MATERIAL_BUCKET = "conversational-bot-source-documents-413034898429-us-east-1"
-# S3_INDEX_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
+# S3_SOURCE_DOCUMENTS_BUCKET = "conversational-bot-source-documents-413034898429-us-east-1"
+# S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
 # SAGEMAKER_MODEL_ENDPOINT_NAME = "model"
 
 LOCAL_INDEX_LOC = "/tmp/index_files"
