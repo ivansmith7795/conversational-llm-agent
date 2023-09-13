@@ -25,11 +25,11 @@ s3_client = boto3.client('s3')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-ENDPOINT_NAME = "huggingface-pytorch-sagemaker-endpoint"
+SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
 OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
 INDEX_WRITE_LOCATION = "/tmp/index"
-ACCOUNT_ID = boto3.client('sts').get_caller_identity().get('Account')
-INDEX_BUCKET = "lexgenaistack-created-index-bucket-"+ACCOUNT_ID
+AWS_ACCOUNT = os.environ['AWS_ACCOUNT']
+S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
 RETRIEVAL_THRESHOLD = 0.4
 
 # define prompt helper
@@ -39,7 +39,7 @@ max_chunk_overlap = 0  # set maximum chunk overlap
 prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
 
 
-def handler(event, context):
+def lambda_handler(event, context):
 
     # lamda can only write to /tmp/
     initialize_cache()
@@ -55,9 +55,9 @@ def handler(event, context):
     if not os.path.exists(INDEX_WRITE_LOCATION):
         os.mkdir(INDEX_WRITE_LOCATION)
     try:
-        s3_client.download_file(INDEX_BUCKET, "docstore.json", INDEX_WRITE_LOCATION + "/docstore.json")
-        s3_client.download_file(INDEX_BUCKET, "index_store.json", INDEX_WRITE_LOCATION + "/index_store.json")
-        s3_client.download_file(INDEX_BUCKET, "vector_store.json", INDEX_WRITE_LOCATION + "/vector_store.json")
+        s3_client.download_file(S3_INDEX_STORE_BUCKET, "docstore.json", INDEX_WRITE_LOCATION + "/docstore.json")
+        s3_client.download_file(S3_INDEX_STORE_BUCKET, "index_store.json", INDEX_WRITE_LOCATION + "/index_store.json")
+        s3_client.download_file(S3_INDEX_STORE_BUCKET, "vector_store.json", INDEX_WRITE_LOCATION + "/vector_store.json")
 
         # load index
         storage_context = StorageContext.from_defaults(persist_dir=INDEX_WRITE_LOCATION)
@@ -127,7 +127,7 @@ template = (
 )
 my_qa_template = Prompt(template)
 
-def call_sagemaker(prompt, endpoint_name=ENDPOINT_NAME):
+def call_sagemaker(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):
     payload = {
         "inputs": prompt,
         "parameters": {
@@ -174,3 +174,18 @@ def initialize_cache():
 
     if not os.path.exists("/tmp/HF_CACHE"):
         os.mkdir("/tmp/HF_CACHE")
+
+
+def main():
+    """
+    Test the function when called from the commandline.
+    """
+    
+    lambda_handler({}, {})
+
+if __name__ == '__main__':
+    os.environ["AWS_REGION"] = "us-east-1"
+    os.environ["AWS_ACCOUNT"] = "413034898429"
+    os.environ["S3_SOURCE_DOCUMENTS_BUCKET"] = "conversational-bot-source-documents-413034898429-us-east-1"
+    os.environ["SAGEMAKER_MODEL_ENDPOINT_NAME"] = "model"
+    main()

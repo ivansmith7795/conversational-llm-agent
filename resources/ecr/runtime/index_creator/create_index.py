@@ -28,8 +28,8 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 #Get the constants from environment vars
-AWS_REGION = os.environ['AWS_REGION']
-AWS_ACCOUNT = os.environ['AWS_ACCOUNT']
+DEFAULT_REGION = os.environ['DEFAULT_REGION']
+DEFAULT_ACCOUNT = os.environ['DEFAULT_REGION']
 S3_SOURCE_DOCUMENTS_BUCKET = os.environ['S3_SOURCE_DOCUMENTS_BUCKET']
 S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
 SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
