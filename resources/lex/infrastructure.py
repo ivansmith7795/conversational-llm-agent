@@ -61,7 +61,7 @@ class LexBots(Construct):
             data_privacy={"ChildDirected":"false"},
             idle_session_ttl_in_seconds=300,
             name=f"{constants.CDK_APP_NAME}-lex-agent",
-            description="Bot created for blog post: Enhance Amazon Lex with conversational FAQ features using LLMs",
+            description="Bot created for testing LLM.",
             role_arn=lex_role_arn,
             bot_locales=[lex.CfnBot.BotLocaleProperty(
                             locale_id="en_US",

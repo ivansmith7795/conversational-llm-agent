@@ -27,12 +27,6 @@ class LambdaFunctions(Construct):
             timeout=Duration.minutes(5)
         )
 
-        # version = build_index_function.current_version
-        # build_index_alias = lambdafunction.Alias(self, f"{constants.CDK_APP_NAME}-indexer-lambda-alias",
-        #     alias_name="sandbox",
-        #     provisioned_concurrent_executions=1,
-        #     version=version
-        # )
 
         #source_bucket.add_event_notification(s3.EventType.OBJECT_CREATED, s3n.LambdaDestination(read_source_and_build_index_function))
 
@@ -52,3 +46,10 @@ class LambdaFunctions(Construct):
             timeout=Duration.minutes(5)
         )
         self.inference_function.grant_invoke(iam.ServicePrincipal("lexv2.amazonaws.com"))
+
+        version = self.inference_function.current_version
+        build_index_alias = lambdafunction.Alias(self, f"{constants.CDK_APP_NAME}-indexer-lambda-alias",
+            alias_name="sandbox",
+            provisioned_concurrent_executions=1,
+            version=version
+        )

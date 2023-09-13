@@ -28,7 +28,7 @@ logger.setLevel(logging.INFO)
 SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
 OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
 INDEX_WRITE_LOCATION = "/tmp/index"
-AWS_ACCOUNT = os.environ['AWS_ACCOUNT']
+DEFAULT_ACCOUNT = os.environ['DEFAULT_ACCOUNT']
 S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
 RETRIEVAL_THRESHOLD = 0.4
 
@@ -184,8 +184,8 @@ def main():
     lambda_handler({}, {})
 
 if __name__ == '__main__':
-    os.environ["AWS_REGION"] = "us-east-1"
-    os.environ["AWS_ACCOUNT"] = "413034898429"
+    os.environ["DEFAULT_REGION"] = "us-east-1"
+    os.environ["DEFAULT_ACCOUNT"] = "413034898429"
     os.environ["S3_SOURCE_DOCUMENTS_BUCKET"] = "conversational-bot-source-documents-413034898429-us-east-1"
     os.environ["SAGEMAKER_MODEL_ENDPOINT_NAME"] = "model"
     main()
