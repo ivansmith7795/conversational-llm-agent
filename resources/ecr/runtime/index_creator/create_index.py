@@ -4,7 +4,6 @@ import json
 import re
 import uuid
 import logging
-import s3fs
 import boto3
 from botocore.exceptions import ClientError
 
@@ -24,7 +23,6 @@ from llama_index.schema import MetadataMode
 from langchain.llms.base import LLM
 from langchain.embeddings import LlamaCppEmbeddings
 from langchain.embeddings import HuggingFaceEmbeddings
-from tqdm.notebook import tqdm
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
