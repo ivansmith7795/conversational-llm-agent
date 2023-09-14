@@ -72,5 +72,10 @@ class LexBots(Construct):
             auto_build_bot_locales=True
         )
 
+        # cfn_resource_policy = lex.CfnResourcePolicy(self, "MyCfnResourcePolicy",
+        #     policy=policy,
+        #     resource_arn="resourceArn"
+        # )
+
 
 
