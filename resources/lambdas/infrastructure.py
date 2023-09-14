@@ -47,9 +47,9 @@ class LambdaFunctions(Construct):
         )
         self.inference_function.grant_invoke(iam.ServicePrincipal("lexv2.amazonaws.com"))
 
-        version = self.inference_function.current_version
-        build_index_alias = lambdafunction.Alias(self, f"{constants.CDK_APP_NAME}-indexer-lambda-alias",
-            alias_name="sandbox",
-            provisioned_concurrent_executions=1,
-            version=version
-        )
+        # version = self.inference_function.current_version
+        # build_index_alias = lambdafunction.Alias(self, f"{constants.CDK_APP_NAME}-indexer-lambda-alias",
+        #     alias_name="sandbox",
+        #     provisioned_concurrent_executions=1,
+        #     version=version
+        # )
