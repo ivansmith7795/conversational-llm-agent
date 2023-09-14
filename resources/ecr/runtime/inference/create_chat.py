@@ -31,7 +31,7 @@ OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regard
 INDEX_WRITE_LOCATION = "/tmp/index"
 DEFAULT_ACCOUNT = os.environ['DEFAULT_ACCOUNT']
 S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
-RETRIEVAL_THRESHOLD = 0.2
+RETRIEVAL_THRESHOLD = 0.1
 
 # SAGEMAKER_MODEL_ENDPOINT_NAME = "jumpstart-dft-meta-textgeneration-llama-2-7b-f"
 # OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
@@ -95,8 +95,8 @@ def handler(event, context):
 
     try:
         answer = query_engine.query(query_input)
-        # print("Score:")
-        # print(str(answer.source_nodes[0].score))
+        print("Score:")
+        print(str(answer.source_nodes[0].score))
     
         if answer.source_nodes[0].score < RETRIEVAL_THRESHOLD:
             answer = OUT_OF_DOMAIN_RESPONSE
