@@ -39,7 +39,7 @@ max_chunk_overlap = 0  # set maximum chunk overlap
 prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
 
 
-def lambda_handler(event, context):
+def handler(event, context):
 
     # lamda can only write to /tmp/
     initialize_cache()
@@ -154,7 +154,7 @@ def get_response_sagemaker_inference(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPO
     return resp
 
 class CustomLLM(LLM):
-    model_name = "tiiuae/falcon-7b-instruct"
+    model_name = SAGEMAKER_MODEL_ENDPOINT_NAME
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
         response = get_response_sagemaker_inference(prompt, SAGEMAKER_MODEL_ENDPOINT_NAME)
@@ -181,7 +181,7 @@ def main():
     Test the function when called from the commandline.
     """
     
-    lambda_handler({}, {})
+    handler({}, {})
 
 if __name__ == '__main__':
     os.environ["DEFAULT_REGION"] = "us-east-1"
