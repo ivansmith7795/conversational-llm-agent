@@ -26,11 +26,20 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
+ERROR_RESPONSE = "I'm sorry, an error occured while processing the request. Please try again later."
 OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
 INDEX_WRITE_LOCATION = "/tmp/index"
 DEFAULT_ACCOUNT = os.environ['DEFAULT_ACCOUNT']
 S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
-RETRIEVAL_THRESHOLD = 0.4
+RETRIEVAL_THRESHOLD = 0.2
+
+# SAGEMAKER_MODEL_ENDPOINT_NAME = "jumpstart-dft-meta-textgeneration-llama-2-7b-f"
+# OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
+# ERROR_RESPONSE = "I'm sorry, an error occured while processing the request. Please try again later."
+# INDEX_WRITE_LOCATION = "/tmp/index"
+# DEFAULT_ACCOUNT = "413034898429"
+# S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
+# RETRIEVAL_THRESHOLD = 0.1
 
 # define prompt helper
 max_input_size = 400  # set maximum input size
@@ -86,16 +95,24 @@ def handler(event, context):
 
     try:
         answer = query_engine.query(query_input)
+        # print("Score:")
+        # print(str(answer.source_nodes[0].score))
+    
         if answer.source_nodes[0].score < RETRIEVAL_THRESHOLD:
             answer = OUT_OF_DOMAIN_RESPONSE
     except:
-        answer = OUT_OF_DOMAIN_RESPONSE
+        answer = ERROR_RESPONSE
+
+    print("Text Answer:")
+    print(answer)
 
     response = generate_lex_response(event, {}, "Fulfilled", answer)
     jsonified_resp = json.loads(json.dumps(response, default=str))
     return jsonified_resp
 
 def generate_lex_response(intent_request, session_attributes, fulfillment_state, message):
+    print("Intent Request:")
+    print(intent_request)
     intent_request['sessionState']['intent']['state'] = fulfillment_state
     return {
         'sessionState': {
@@ -128,29 +145,41 @@ template = (
 my_qa_template = Prompt(template)
 
 def call_sagemaker(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):
+    print("Prompt")
+    print(prompt)
     payload = {
-        "inputs": prompt,
+        "inputs": [
+            [
+                {"role": "user", "content": str(prompt)}
+            ]
+        ],
         "parameters": {
             "do_sample": False,
             # "top_p": 0.9,
             "temperature": 0.1,
             "max_new_tokens": 200,
-            "repetition_penalty": 1.03,
-            "stop": ["\nUser:", "<|endoftext|>", "</s>"]
+            "repetition_penalty": 1.03
         }
     }
 
     sagemaker_client = boto3.client("sagemaker-runtime")
+    custom_attributes = "accept_eula=true"
     payload = json.dumps(payload)
     response = sagemaker_client.invoke_endpoint(
-        EndpointName=endpoint_name, ContentType="application/json", Body=payload
+        EndpointName=endpoint_name, 
+        ContentType="application/json", 
+        Body=payload,
+        CustomAttributes=custom_attributes
     )
     response_string = response["Body"].read().decode()
     return response_string
 
 def get_response_sagemaker_inference(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):
     resp = call_sagemaker(prompt, endpoint_name)
-    resp = json.loads(resp)[0]["generated_text"][len(prompt):]
+    print("Response:")
+    print(resp)
+
+    resp = json.loads(resp)[0]["generation"]["content"]
     return resp
 
 class CustomLLM(LLM):
@@ -181,11 +210,11 @@ def main():
     Test the function when called from the commandline.
     """
     
-    handler({}, {})
+    handler({"inputTranscript": "What is the Xterra?"}, {})
 
 if __name__ == '__main__':
-    os.environ["DEFAULT_REGION"] = "us-east-1"
-    os.environ["DEFAULT_ACCOUNT"] = "413034898429"
-    os.environ["S3_SOURCE_DOCUMENTS_BUCKET"] = "conversational-bot-source-documents-413034898429-us-east-1"
-    os.environ["SAGEMAKER_MODEL_ENDPOINT_NAME"] = "model"
+    os.environ["DEFAULT_REGION"] = ""
+    os.environ["DEFAULT_ACCOUNT"] = ""
+    os.environ["S3_SOURCE_DOCUMENTS_BUCKET"] = ""
+    os.environ["SAGEMAKER_MODEL_ENDPOINT_NAME"] = ""
     main()
