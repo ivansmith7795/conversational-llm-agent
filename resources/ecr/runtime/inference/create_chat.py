@@ -148,7 +148,7 @@ def call_sagemaker(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):
     response_string = response["Body"].read().decode()
     return response_string
 
-def get_response_sagemaker_inference(prompt, endpoint_name=ENDPOINT_NAME):
+def get_response_sagemaker_inference(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):
     resp = call_sagemaker(prompt, endpoint_name)
     resp = json.loads(resp)[0]["generated_text"][len(prompt):]
     return resp
@@ -157,7 +157,7 @@ class CustomLLM(LLM):
     model_name = "tiiuae/falcon-7b-instruct"
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
-        response = get_response_sagemaker_inference(prompt, ENDPOINT_NAME)
+        response = get_response_sagemaker_inference(prompt, SAGEMAKER_MODEL_ENDPOINT_NAME)
         return response
 
     @property
