@@ -12,7 +12,7 @@ RUN apt update && \
 RUN wget https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz && \
     tar xvf Python-3.10.13.tgz && \
     cd Python-*/ && \
-    ./configure --enable-optimizations && \
+    ./configure --enable-optimizations --enable-loadable-sqlite-extensions && \
     make install
 
 RUN update-alternatives --install /usr/local/bin/python python /usr/local/bin/python3.10 1

@@ -4,5 +4,3 @@ sentence-transformers
 pypdf
 typing_extensions
 boto3
-langchain
-protobuf
