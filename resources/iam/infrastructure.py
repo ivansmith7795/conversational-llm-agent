@@ -6,7 +6,7 @@ import constants
 from constructs import Construct
 
 class IAMRoles(Construct):
-    def __init__(self, scope: Construct, id_: str, vpcid: str, **kwargs):
+    def __init__(self, scope: Construct, id_: str, vpcid: str, s3_indexer_bucket_arn: str, s3_document_bucket_arn: str,**kwargs):
         super().__init__(scope, id_)
 
          # Iam role for bot to invoke lambda
@@ -22,4 +22,38 @@ class IAMRoles(Construct):
         self.lambda_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSageMakerFullAccess"))
         self.lambda_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess")) 
 
+        self.indexer_task_iam_role = iam.Role(self, f"{constants.CDK_APP_NAME}-indexer-task-role",
+            role_name=f"{constants.CDK_APP_NAME}-indexer-task-role",
+            assumed_by=iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
+            description="Role for running indexer application"
+        )
+    
+        self.indexer_task_iam_role.add_to_policy(
+            iam.PolicyStatement( 
+                actions=["s3:Get*", "s3:List*", "s3:Put*"],
+                resources=[
+                    s3_indexer_bucket_arn +'*',
+                    s3_indexer_bucket_arn +'/*'
+                ])
+        )
+       
+        self.indexer_task_iam_role.add_to_policy(
+            iam.PolicyStatement( 
+                actions=["s3:Get*", "s3:List*"],
+                resources=[
+                    s3_document_bucket_arn +'*',
+                    s3_document_bucket_arn +'/*'
+                ])
+        )
+    
+        self.indexer_execution_iam_role = iam.Role(self, f"{constants.CDK_APP_NAME}-indexer-execution-role",
+            role_name=f"{constants.CDK_APP_NAME}-indexer-execution-role",
+            assumed_by=iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
+            description="Role for running indexer ECS task creation"
+        )
 
+        self.indexer_execution_iam_role.add_to_policy(
+            iam.PolicyStatement( 
+                actions=["ecr:GetAuthorizationToken", "ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer", "logs:CreateLogStream", "logs:PutLogEvents"],
+                resources=["*"])
+        )

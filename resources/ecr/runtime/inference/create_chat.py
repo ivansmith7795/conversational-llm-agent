@@ -25,21 +25,21 @@ s3_client = boto3.client('s3')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
-ERROR_RESPONSE = "I'm sorry, an error occured while processing the request. Please try again later."
-OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
-INDEX_WRITE_LOCATION = "/tmp/index"
-DEFAULT_ACCOUNT = os.environ['DEFAULT_ACCOUNT']
-S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
-RETRIEVAL_THRESHOLD = 0.1
-
-# SAGEMAKER_MODEL_ENDPOINT_NAME = "jumpstart-dft-meta-textgeneration-llama-2-7b-f"
-# OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
+# SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
 # ERROR_RESPONSE = "I'm sorry, an error occured while processing the request. Please try again later."
+# OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
 # INDEX_WRITE_LOCATION = "/tmp/index"
-# DEFAULT_ACCOUNT = "413034898429"
-# S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
+# DEFAULT_ACCOUNT = os.environ['DEFAULT_ACCOUNT']
+# S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
 # RETRIEVAL_THRESHOLD = 0.1
+
+SAGEMAKER_MODEL_ENDPOINT_NAME = "jumpstart-dft-meta-textgeneration-llama-2-7b-f"
+OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
+ERROR_RESPONSE = "I'm sorry, an error occured while processing the request. Please try again later."
+INDEX_WRITE_LOCATION = "/tmp/index"
+DEFAULT_ACCOUNT = "413034898429"
+S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
+RETRIEVAL_THRESHOLD = 0.1
 
 # define prompt helper
 max_input_size = 400  # set maximum input size
@@ -50,27 +50,34 @@ prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
 
 def handler(event, context):
 
+    print(event)
     # lamda can only write to /tmp/
     initialize_cache()
 
     # define our LLM
     llm_predictor = LLMPredictor(llm=CustomLLM())
-    embed_model = LangchainEmbedding(HuggingFaceEmbeddings(cache_folder="/tmp/HF_CACHE"))
+    embed_model = LangchainEmbedding(
+        HuggingFaceEmbeddings(cache_folder="/tmp/HF_CACHE"))
     service_context = ServiceContext.from_defaults(
         llm_predictor=llm_predictor, prompt_helper=prompt_helper, embed_model=embed_model,
     )
 
-    ### Download index here
+    # Download index here
     if not os.path.exists(INDEX_WRITE_LOCATION):
         os.mkdir(INDEX_WRITE_LOCATION)
     try:
-        s3_client.download_file(S3_INDEX_STORE_BUCKET, "docstore.json", INDEX_WRITE_LOCATION + "/docstore.json")
-        s3_client.download_file(S3_INDEX_STORE_BUCKET, "index_store.json", INDEX_WRITE_LOCATION + "/index_store.json")
-        s3_client.download_file(S3_INDEX_STORE_BUCKET, "vector_store.json", INDEX_WRITE_LOCATION + "/vector_store.json")
+        s3_client.download_file(
+            S3_INDEX_STORE_BUCKET, "docstore.json", INDEX_WRITE_LOCATION + "/docstore.json")
+        s3_client.download_file(
+            S3_INDEX_STORE_BUCKET, "index_store.json", INDEX_WRITE_LOCATION + "/index_store.json")
+        s3_client.download_file(S3_INDEX_STORE_BUCKET, "vector_store.json",
+                                INDEX_WRITE_LOCATION + "/vector_store.json")
 
         # load index
-        storage_context = StorageContext.from_defaults(persist_dir=INDEX_WRITE_LOCATION)
-        index = load_index_from_storage(storage_context, service_context=service_context)
+        storage_context = StorageContext.from_defaults(
+            persist_dir=INDEX_WRITE_LOCATION)
+        index = load_index_from_storage(
+            storage_context, service_context=service_context)
         logger.info("Index successfully loaded")
     except ClientError as e:
         logger.error(e)
@@ -79,7 +86,7 @@ def handler(event, context):
     retriever = VectorIndexRetriever(
         service_context=service_context,
         index=index,
-        similarity_top_k=5,
+        similarity_top_k=2,
         vector_store_query_mode=VectorStoreQueryMode.DEFAULT,  # doesn't work with simple
         alpha=0.5,
     )
@@ -90,14 +97,15 @@ def handler(event, context):
         service_context=service_context
     )
 
-    query_engine = RetrieverQueryEngine(retriever=retriever, response_synthesizer=synth)
+    query_engine = RetrieverQueryEngine(
+        retriever=retriever, response_synthesizer=synth)
     query_input = event["inputTranscript"]
 
     try:
         answer = query_engine.query(query_input)
         print("Score:")
         print(str(answer.source_nodes[0].score))
-    
+
         if answer.source_nodes[0].score < RETRIEVAL_THRESHOLD:
             answer = OUT_OF_DOMAIN_RESPONSE
     except:
@@ -110,9 +118,14 @@ def handler(event, context):
     jsonified_resp = json.loads(json.dumps(response, default=str))
     return jsonified_resp
 
+
 def generate_lex_response(intent_request, session_attributes, fulfillment_state, message):
     print("Intent Request:")
     print(intent_request)
+
+    print("Message:")
+    print(message)
+
     intent_request['sessionState']['intent']['state'] = fulfillment_state
     return {
         'sessionState': {
@@ -131,6 +144,7 @@ def generate_lex_response(intent_request, session_attributes, fulfillment_state,
         'requestAttributes': intent_request['requestAttributes'] if 'requestAttributes' in intent_request else None
     }
 
+
 # define prompt template
 template = (
     "We have provided context information below. \n"
@@ -140,9 +154,11 @@ template = (
     "CONTEXT2:\n"
     "CANNOTANSWER"
     "\n---------------------\n"
-    'Given this context, please answer the question if answerable based on on the CONTEXT1 and CONTEXT2: "{query_str}"\n; '  # otherwise specify it as CANNOTANSWER
+    # otherwise specify it as CANNOTANSWER
+    'Given this context, please answer the question if answerable based on on the CONTEXT1 and CONTEXT2: "{query_str}"\n; '
 )
 my_qa_template = Prompt(template)
+
 
 def call_sagemaker(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):
     print("Prompt")
@@ -166,13 +182,14 @@ def call_sagemaker(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):
     custom_attributes = "accept_eula=true"
     payload = json.dumps(payload)
     response = sagemaker_client.invoke_endpoint(
-        EndpointName=endpoint_name, 
-        ContentType="application/json", 
+        EndpointName=endpoint_name,
+        ContentType="application/json",
         Body=payload,
         CustomAttributes=custom_attributes
     )
     response_string = response["Body"].read().decode()
     return response_string
+
 
 def get_response_sagemaker_inference(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):
     resp = call_sagemaker(prompt, endpoint_name)
@@ -182,11 +199,13 @@ def get_response_sagemaker_inference(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPO
     resp = json.loads(resp)[0]["generation"]["content"]
     return resp
 
+
 class CustomLLM(LLM):
     model_name = SAGEMAKER_MODEL_ENDPOINT_NAME
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
-        response = get_response_sagemaker_inference(prompt, SAGEMAKER_MODEL_ENDPOINT_NAME)
+        response = get_response_sagemaker_inference(
+            prompt, SAGEMAKER_MODEL_ENDPOINT_NAME)
         return response
 
     @property
@@ -196,7 +215,8 @@ class CustomLLM(LLM):
     @property
     def _llm_type(self) -> str:
         return "custom"
-    
+
+
 def initialize_cache():
     if not os.path.exists("/tmp/TRANSFORMERS_CACHE"):
         os.mkdir("/tmp/TRANSFORMERS_CACHE")
@@ -209,8 +229,9 @@ def main():
     """
     Test the function when called from the commandline.
     """
-    
-    handler({"inputTranscript": "What is the Xterra?"}, {})
+
+    handler({"inputTranscript": "How do I change the oil?"}, {})
+
 
 if __name__ == '__main__':
     os.environ["DEFAULT_REGION"] = ""

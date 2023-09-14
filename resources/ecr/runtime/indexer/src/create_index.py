@@ -28,31 +28,31 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 #Get the constants from environment vars
-DEFAULT_REGION = os.environ['DEFAULT_REGION']
-DEFAULT_ACCOUNT = os.environ['DEFAULT_REGION']
-S3_SOURCE_DOCUMENTS_BUCKET = os.environ['S3_SOURCE_DOCUMENTS_BUCKET']
-S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
-SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
+# DEFAULT_REGION = os.environ['DEFAULT_REGION']
+# DEFAULT_ACCOUNT = os.environ['DEFAULT_REGION']
+# S3_SOURCE_DOCUMENTS_BUCKET = os.environ['S3_SOURCE_DOCUMENTS_BUCKET']
+# S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
+# SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
 
-# DEFAULT_REGION = "us-east-1"
-# DEFAULT_ACCOUNT = "413034898429"
-# S3_SOURCE_DOCUMENTS_BUCKET = "conversational-bot-source-documents-413034898429-us-east-1"
-# S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
-# SAGEMAKER_MODEL_ENDPOINT_NAME = "model"
+DEFAULT_REGION = "us-east-1"
+DEFAULT_ACCOUNT = "413034898429"
+S3_SOURCE_DOCUMENTS_BUCKET = "conversational-bot-source-documents-413034898429-us-east-1"
+S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
+SAGEMAKER_MODEL_ENDPOINT_NAME = "jumpstart-dft-meta-textgeneration-llama-2-7b-f"
 
-LOCAL_INDEX_LOC = "/tmp/index_files"
+LOCAL_INDEX_LOC = "index_files"
 
-def handler(event, context):
+def build_index():
     
     s3_resource = boto3.resource('s3')
     
-    download_dir(resource=s3_resource, dist='', local='/tmp/documents', bucket=S3_SOURCE_DOCUMENTS_BUCKET)
+    download_dir(resource=s3_resource, dist='', local='documents', bucket=S3_SOURCE_DOCUMENTS_BUCKET)
     create_vector_embeddings(s3_resource.meta.client)
 
     logger.info("Index successfully created")
     return
 
-def download_dir(resource, dist, local='/tmp/documents', bucket=S3_SOURCE_DOCUMENTS_BUCKET):
+def download_dir(resource, dist, local='documents', bucket=S3_SOURCE_DOCUMENTS_BUCKET):
     """
     Download files from the source S3 bucket
     """
@@ -71,9 +71,9 @@ def download_dir(resource, dist, local='/tmp/documents', bucket=S3_SOURCE_DOCUME
 
 def create_vector_embeddings(s3_client):
 
-    documents = SimpleDirectoryReader('/tmp/documents').load_data()
-    print(len(documents))
-
+    documents = SimpleDirectoryReader('documents').load_data()
+    print(f"Index contains: {len(documents)} documents.")
+    
     # define prompt helper
     max_input_size = 400  # set maximum input size
     num_output = 50  # set number of output tokens
@@ -81,7 +81,7 @@ def create_vector_embeddings(s3_client):
     prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
 
     llm_predictor = LLMPredictor(llm=CustomLLM())
-    embed_model = LangchainEmbedding(HuggingFaceEmbeddings(cache_folder="/tmp/HF_CACHE"))
+    embed_model = LangchainEmbedding(HuggingFaceEmbeddings(cache_folder="HF_CACHE"))
     service_context = ServiceContext.from_defaults(
         llm_predictor=llm_predictor, prompt_helper=prompt_helper, embed_model=embed_model,
     )
@@ -127,7 +127,7 @@ def main():
     """
     Test the function when called from the commandline.
     """
-    handler({}, {})
+    build_index()
 
 
 class CustomLLM(LLM):
@@ -146,9 +146,9 @@ class CustomLLM(LLM):
         return "custom"
     
 if __name__ == '__main__':
-    os.environ["AWS_REGION"] = "us-east-1"
-    os.environ["AWS_ACCOUNT"] = "413034898429"
-    os.environ["S3_SOURCE_DOCUMENTS_BUCKET"] = "conversational-bot-source-documents-413034898429-us-east-1"
-    os.environ["SAGEMAKER_MODEL_ENDPOINT_NAME"] = "model"
+    os.environ["AWS_REGION"] = ""
+    os.environ["AWS_ACCOUNT"] = ""
+    os.environ["S3_SOURCE_DOCUMENTS_BUCKET"] = ""
+    os.environ["SAGEMAKER_MODEL_ENDPOINT_NAME"] = ""
     main()
 

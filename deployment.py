@@ -4,6 +4,8 @@ import constants
 
 from resources.s3.infrastructure import S3Buckets
 from resources.iam.infrastructure import IAMRoles
+from resources.ecr.infrastructure import ECRImages
+from resources.ecs.infrastructure import ECSCluster
 from resources.lambdas.infrastructure import LambdaFunctions
 from resources.lex.infrastructure import LexBots
 
@@ -19,7 +21,9 @@ class SolutionResources(Stage):
         super().__init__(scope, id, **kwargs)
         
         solution_infrastack = Stack(self, f"infrastructure", env=constants.CDK_ENV)
-        iam = IAMRoles(solution_infrastack, f"{constants.CDK_APP_NAME}-iam-roles", constants.VPC_ID)
         s3 = S3Buckets(solution_infrastack, f"{constants.CDK_APP_NAME}-s3-buckets", constants.VPC_ID)
+        iam = IAMRoles(solution_infrastack, f"{constants.CDK_APP_NAME}-iam-roles", constants.VPC_ID, s3.s3_index_store.bucket_arn, s3.s3_source_documents_bucket.bucket_arn)
+        ecr = ECRImages(solution_infrastack,  f"{constants.CDK_APP_NAME}-ecr-images")
+        ecs = ECSCluster(solution_infrastack,  f"{constants.CDK_APP_NAME}-ecs-tasks", constants.VPC_ID, ecr.indexer.image_uri, iam.indexer_execution_iam_role, iam.indexer_task_iam_role)
         lambdas = LambdaFunctions(solution_infrastack,  f"{constants.CDK_APP_NAME}-lambda-functions", iam.lambda_role)
         lex = LexBots(solution_infrastack,  f"{constants.CDK_APP_NAME}-lex-bots", lambdas.inference_function.function_arn, iam.lex_role.role_arn)
