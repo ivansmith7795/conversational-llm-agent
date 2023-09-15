@@ -81,14 +81,14 @@ class ECSCluster(Construct):
             )
         )
 
-        self.llm_service_security_group = ec2.SecurityGroup(self, f"{constants.CDK_APP_NAME}-llm-service-sg",
-                security_group_name=f"{constants.CDK_APP_NAME}-llm-service-sg",
-                description="Security Group for VPC traffic",
-                allow_all_outbound=True,
-                vpc=vpc
-        )
+        # self.llm_service_security_group = ec2.SecurityGroup(self, f"{constants.CDK_APP_NAME}-llm-service-sg",
+        #         security_group_name=f"{constants.CDK_APP_NAME}-llm-service-sg",
+        #         description="Security Group for VPC traffic",
+        #         allow_all_outbound=True,
+        #         vpc=vpc
+        # )
 
-        self.llm_service_security_group.add_ingress_rule(ec2.Peer.ipv4('0.0.0.0/0'), ec2.Port.tcp(8080), 'Allow inbound on port 8080')
+        # self.llm_service_security_group.add_ingress_rule(ec2.Peer.ipv4('0.0.0.0/0'), ec2.Port.tcp(8080), 'Allow inbound on port 8080')
 
         llm_service = ecs.FargateService(self, f"{constants.CDK_APP_NAME}-llm-ecs-service",
             service_name=f"{constants.CDK_APP_NAME}-llm-ecs-service",
