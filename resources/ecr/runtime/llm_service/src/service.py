@@ -29,21 +29,21 @@ s3_client = boto3.client('s3')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
-# ERROR_RESPONSE = "I'm sorry, an error occured while processing the request. Please try again later."
-# OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
-# INDEX_WRITE_LOCATION = "/tmp/index"
-# DEFAULT_ACCOUNT = os.environ['DEFAULT_ACCOUNT']
-# S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
-# RETRIEVAL_THRESHOLD = 0.1
-
-SAGEMAKER_MODEL_ENDPOINT_NAME = "jumpstart-dft-meta-textgeneration-llama-2-7b-f"
-OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
+SAGEMAKER_MODEL_ENDPOINT_NAME = os.environ['SAGEMAKER_MODEL_ENDPOINT_NAME']
 ERROR_RESPONSE = "I'm sorry, an error occured while processing the request. Please try again later."
+OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
 INDEX_WRITE_LOCATION = "/tmp/index"
-DEFAULT_ACCOUNT = "413034898429"
-S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
+DEFAULT_ACCOUNT = os.environ['DEFAULT_ACCOUNT']
+S3_INDEX_STORE_BUCKET = os.environ['S3_INDEX_STORE_BUCKET']
 RETRIEVAL_THRESHOLD = 0.1
+
+# SAGEMAKER_MODEL_ENDPOINT_NAME = "jumpstart-dft-meta-textgeneration-llama-2-7b-f"
+# OUT_OF_DOMAIN_RESPONSE = "I'm sorry, but I am only able to give responses regarding the source topic"
+# ERROR_RESPONSE = "I'm sorry, an error occured while processing the request. Please try again later."
+# INDEX_WRITE_LOCATION = "/tmp/index"
+# DEFAULT_ACCOUNT = "413034898429"
+# S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
+# RETRIEVAL_THRESHOLD = 0.1
 
 
 def call_sagemaker(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):

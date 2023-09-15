@@ -6,7 +6,7 @@ import constants
 from constructs import Construct
 
 class IAMRoles(Construct):
-    def __init__(self, scope: Construct, id_: str, vpcid: str, s3_indexer_bucket_arn: str, s3_document_bucket_arn: str,**kwargs):
+    def __init__(self, scope: Construct, id_: str, vpcid: str, s3_indexer_bucket_arn: str, s3_document_bucket_arn: str, ssm_parameter_arn: str,**kwargs):
         super().__init__(scope, id_)
 
          # Iam role for bot to invoke lambda
@@ -18,6 +18,14 @@ class IAMRoles(Construct):
         # Iam role for lambda to invoke sagemaker
         self.lambda_role = iam.Role(self, f"{constants.CDK_APP_NAME}-lambda-role",
             assumed_by=iam.ServicePrincipal("lambda.amazonaws.com")
+        )
+
+        self.lambda_role.add_to_policy(
+            iam.PolicyStatement( 
+                actions=["ssm:Get*", "ssm:List*", "ssm:Describe*"],
+                resources=[
+                    ssm_parameter_arn
+                ])
         )
 
         # Indexer task role #
@@ -44,6 +52,7 @@ class IAMRoles(Construct):
                     s3_document_bucket_arn +'/*'
                 ])
         )
+
     
         self.indexer_execution_iam_role = iam.Role(self, f"{constants.CDK_APP_NAME}-indexer-execution-role",
             role_name=f"{constants.CDK_APP_NAME}-indexer-execution-role",
