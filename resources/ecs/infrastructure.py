@@ -94,8 +94,7 @@ class ECSCluster(Construct):
             service_name=f"{constants.CDK_APP_NAME}-llm-ecs-service",
             cluster=conversational_cluster,
             task_definition=llm_task_definition,
-            desired_count=1,
-            security_groups=[self.llm_service_security_group]
+            desired_count=1
 
         )
 
