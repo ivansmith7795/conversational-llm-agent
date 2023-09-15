@@ -90,12 +90,12 @@ class ECSCluster(Construct):
 
         # self.llm_service_security_group.add_ingress_rule(ec2.Peer.ipv4('0.0.0.0/0'), ec2.Port.tcp(8080), 'Allow inbound on port 8080')
 
-        llm_service = ecs.FargateService(self, f"{constants.CDK_APP_NAME}-llm-ecs-service",
-            service_name=f"{constants.CDK_APP_NAME}-llm-ecs-service",
-            cluster=conversational_cluster,
-            task_definition=llm_task_definition,
-            desired_count=1
+        # llm_service = ecs.FargateService(self, f"{constants.CDK_APP_NAME}-llm-ecs-service",
+        #     service_name=f"{constants.CDK_APP_NAME}-llm-ecs-service",
+        #     cluster=conversational_cluster,
+        #     task_definition=llm_task_definition,
+        #     desired_count=1
 
-        )
+        # )
 
 
