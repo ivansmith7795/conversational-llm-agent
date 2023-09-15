@@ -1,10 +1,9 @@
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, ValidationError
 
 from flask import Flask, abort, request
 import flask
 
-import validators
 import logging
 import json
 import os
@@ -45,47 +44,6 @@ INDEX_WRITE_LOCATION = "/tmp/index"
 DEFAULT_ACCOUNT = "413034898429"
 S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
 RETRIEVAL_THRESHOLD = 0.1
-
-
-def generate_lex_response(intent_request, session_attributes, fulfillment_state, message):
-    print("Intent Request:")
-    print(intent_request)
-
-    print("Message:")
-    print(message)
-
-    intent_request['sessionState']['intent']['state'] = fulfillment_state
-    return {
-        'sessionState': {
-            'sessionAttributes': session_attributes,
-            'dialogAction': {
-                'type': 'Close'
-            },
-            'intent': intent_request['sessionState']['intent']
-        },
-        'messages': [
-            {
-                "contentType": "PlainText",
-                "content": message
-            }
-        ],
-        'requestAttributes': intent_request['requestAttributes'] if 'requestAttributes' in intent_request else None
-    }
-
-
-# define prompt template
-template = (
-    "We have provided context information below. \n"
-    "---------------------\n"
-    "CONTEXT1:\n"
-    "{context_str}\n\n"
-    "CONTEXT2:\n"
-    "CANNOTANSWER"
-    "\n---------------------\n"
-    # otherwise specify it as CANNOTANSWER
-    'Given this context, please answer the question if answerable based on on the CONTEXT1 and CONTEXT2: "{query_str}"\n; '
-)
-my_qa_template = Prompt(template)
 
 
 def call_sagemaker(prompt, endpoint_name=SAGEMAKER_MODEL_ENDPOINT_NAME):
@@ -145,6 +103,7 @@ class CustomLLM(LLM):
         return "custom"
 
 
+print("Initiating runtime...")
 # define prompt helper
 max_input_size = 400  # set maximum input size
 num_output = 50  # set number of output tokens
@@ -161,6 +120,7 @@ service_context = ServiceContext.from_defaults(
 )
 
 # Download index here
+print("Downloading index...")
 if not os.path.exists(INDEX_WRITE_LOCATION):
     os.mkdir(INDEX_WRITE_LOCATION)
 try:
@@ -227,7 +187,8 @@ def query_llm():
 
         if answer.source_nodes[0].score < RETRIEVAL_THRESHOLD:
             answer = OUT_OF_DOMAIN_RESPONSE
-    except:
+    except ValidationError as e:
+        print(str(e))
         answer = ERROR_RESPONSE
 
     print("Text Answer:")
@@ -249,7 +210,7 @@ def initialize_cache():
 
 def main():
     # app.run(debug=False, use_reloader=False)
-    app.run(debug=False, use_reloader=False, host="127.0.0.1")
+    app.run(debug=False, use_reloader=False, host="0.0.0.0", port=8080)
 
 
 if __name__ == '__main__':

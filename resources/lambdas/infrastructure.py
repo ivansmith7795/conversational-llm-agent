@@ -8,7 +8,7 @@ from aws_cdk import Duration
 from constructs import Construct
 
 class LambdaFunctions(Construct):
-    def __init__(self, scope: Construct, id_: str, lambda_role: iam.IRole, **kwargs):
+    def __init__(self, scope: Construct, id_: str, lambda_role: iam.IRole, llm_service_parameter: str, **kwargs):
         super().__init__(scope, id_)
 
         # # lambda function for on demand index creation
@@ -25,7 +25,7 @@ class LambdaFunctions(Construct):
         #     role=lambda_role,
         #     memory_size=10240,
         #     ephemeral_storage_size=10240,
-        #     timeout=Duration.minutes(5)
+        #     timeout=Duration.minutes(5),
         # )
 
 
@@ -36,15 +36,11 @@ class LambdaFunctions(Construct):
             function_name=f"{constants.CDK_APP_NAME}-inference-function",
             code=lambdafunction.DockerImageCode.from_image_asset("resources/ecr/runtime/inference/"),
              environment={
-                    'DEFAULT_ACCOUNT': constants.CDK_ACCOUNT,
-                    'DEFAULT_REGION': constants.CDK_REGION,
-                    'SAGEMAKER_MODEL_ENDPOINT_NAME': constants.SAGEMAKER_MODEL_ENDPOINT_NAME,
-                    'S3_SOURCE_DOCUMENTS_BUCKET': constants.S3_SOURCE_DOCUMENTS_BUCKET,
-                    'S3_INDEX_STORE_BUCKET': constants.S3_INDEX_STORE_BUCKET
+                    'LLM_SERVICE_ENDPOINT_PARAMETER': llm_service_parameter
             },
             role=lambda_role,
-            ephemeral_storage_size=cdk.Size.mebibytes(1000),
-            memory_size=10240,
+            ephemeral_storage_size=cdk.Size.mebibytes(512),
+            memory_size=512,
             timeout=Duration.minutes(5)
         )
         self.inference_function.grant_invoke(iam.ServicePrincipal("lexv2.amazonaws.com"))

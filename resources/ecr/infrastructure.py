@@ -14,3 +14,8 @@ class ECRImages(Construct):
             directory="resources/ecr/runtime/indexer",
             network_mode=ecr.NetworkMode.HOST
         )
+
+        self.llm = ecr.DockerImageAsset(self, f"{constants.CDK_APP_NAME}-llm-image",
+            directory="resources/ecr/runtime/inference",
+            network_mode=ecr.NetworkMode.HOST
+        )

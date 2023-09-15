@@ -1,14 +1,26 @@
-FROM public.ecr.aws/lambda/python:3.8
+FROM public.ecr.aws/docker/library/ubuntu:20.04
 
 COPY requirements.txt  .
-RUN  pip3 install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
-# Copy function code
-COPY *.py ${LAMBDA_TASK_ROOT}
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
-CMD [ "create_chat.handler" ]
+RUN apt update && \
+    apt upgrade -y && \
+    apt-get install tar wget openssl python3-pip build-essential zlib1g-dev openssl zlib1g-dev libsqlite3-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev python3-dev python3-pip -y 
 
-# Set cache to a location lambda can write to
-ENV TRANSFORMERS_CACHE="/tmp/TRANSFORMERS_CACHE"
+# Install Python3.10
+RUN wget https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz && \
+    tar xvf Python-3.10.13.tgz && \
+    cd Python-*/ && \
+    ./configure --enable-optimizations --enable-loadable-sqlite-extensions && \
+    make install
 
+RUN update-alternatives --install /usr/local/bin/python python /usr/local/bin/python3.10 1
+
+RUN  pip3 install -r requirements.txt
+
+COPY /src/service.py /opt/src/service.py
+
+WORKDIR /opt/src/
+
+ENTRYPOINT ["python3", "service.py"]
