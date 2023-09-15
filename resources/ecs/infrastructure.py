@@ -28,7 +28,7 @@ class ECSCluster(Construct):
             family=f"{constants.CDK_APP_NAME}-ecs-indexer-task",
             ephemeral_storage_gib=100,
             memory_limit_mib=2048,
-            cpu=512,
+            cpu=1024,
             runtime_platform=ecs.RuntimePlatform(
                 operating_system_family=ecs.OperatingSystemFamily.LINUX,
                 cpu_architecture=ecs.CpuArchitecture.X86_64
@@ -89,7 +89,7 @@ class ECSCluster(Construct):
         )
 
         self.llm_service_security_group.add_ingress_rule(ec2.Peer.ipv4('0.0.0.0/0'), ec2.Port.tcp(8080), 'Allow inbound on port 8080')
-        
+
         llm_service = ecs.FargateService(self, f"{constants.CDK_APP_NAME}-llm-ecs-service",
             service_name=f"{constants.CDK_APP_NAME}-llm-ecs-service",
             cluster=conversational_cluster,
