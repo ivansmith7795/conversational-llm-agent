@@ -42,8 +42,6 @@ class LambdaFunctions(Construct):
             role=lambda_role,
             ephemeral_storage_size=cdk.Size.mebibytes(512),
             memory_size=512,
-            vpc_subnets=ec2.SubnetSelection(subnet_group_name="subnet-9ad52cd7"),
-            vpc_subnets=[],
             timeout=Duration.minutes(5)
         )
         self.inference_function.grant_invoke(iam.ServicePrincipal("lexv2.amazonaws.com"))
