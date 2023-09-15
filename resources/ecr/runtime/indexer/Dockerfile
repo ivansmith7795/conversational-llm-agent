@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt update && \
     apt upgrade -y && \
-    apt-get install tar wget openssl python3-pip build-essential zlib1g-dev openssl zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev python3-dev python3-pip -y 
+    apt-get install tar wget openssl python3-pip build-essential zlib1g-dev openssl zlib1g-dev libsqlite3-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev python3-dev python3-pip -y 
 
 # Install Python3.10
 RUN wget https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz && \

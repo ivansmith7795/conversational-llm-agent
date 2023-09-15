@@ -1,5 +1,10 @@
 import boto3
 from botocore.exceptions import ClientError
+
+from flask import Flask, abort, request
+import flask
+
+import validators
 import logging
 import json
 import os
@@ -40,83 +45,6 @@ INDEX_WRITE_LOCATION = "/tmp/index"
 DEFAULT_ACCOUNT = "413034898429"
 S3_INDEX_STORE_BUCKET = "conversational-bot-index-store-413034898429-us-east-1"
 RETRIEVAL_THRESHOLD = 0.1
-
-# define prompt helper
-max_input_size = 400  # set maximum input size
-num_output = 50  # set number of output tokens
-max_chunk_overlap = 0  # set maximum chunk overlap
-prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
-
-
-def handler(event, context):
-
-    print(event)
-    # lamda can only write to /tmp/
-    initialize_cache()
-
-    # define our LLM
-    llm_predictor = LLMPredictor(llm=CustomLLM())
-    embed_model = LangchainEmbedding(
-        HuggingFaceEmbeddings(cache_folder="/tmp/HF_CACHE"))
-    service_context = ServiceContext.from_defaults(
-        llm_predictor=llm_predictor, prompt_helper=prompt_helper, embed_model=embed_model,
-    )
-
-    # Download index here
-    if not os.path.exists(INDEX_WRITE_LOCATION):
-        os.mkdir(INDEX_WRITE_LOCATION)
-    try:
-        s3_client.download_file(
-            S3_INDEX_STORE_BUCKET, "docstore.json", INDEX_WRITE_LOCATION + "/docstore.json")
-        s3_client.download_file(
-            S3_INDEX_STORE_BUCKET, "index_store.json", INDEX_WRITE_LOCATION + "/index_store.json")
-        s3_client.download_file(S3_INDEX_STORE_BUCKET, "vector_store.json",
-                                INDEX_WRITE_LOCATION + "/vector_store.json")
-
-        # load index
-        storage_context = StorageContext.from_defaults(
-            persist_dir=INDEX_WRITE_LOCATION)
-        index = load_index_from_storage(
-            storage_context, service_context=service_context)
-        logger.info("Index successfully loaded")
-    except ClientError as e:
-        logger.error(e)
-        return "ERROR LOADING/READING INDEX"
-
-    retriever = VectorIndexRetriever(
-        service_context=service_context,
-        index=index,
-        similarity_top_k=5,
-        vector_store_query_mode=VectorStoreQueryMode.DEFAULT,  # doesn't work with simple
-        alpha=0.5,
-    )
-
-    # configure response synthesizer
-    synth = ResponseSynthesizer.from_args(
-        response_mode="simple_summarize",
-        service_context=service_context
-    )
-
-    query_engine = RetrieverQueryEngine(
-        retriever=retriever, response_synthesizer=synth)
-    query_input = event["inputTranscript"]
-
-    try:
-        answer = query_engine.query(query_input)
-        print("Score:")
-        print(str(answer.source_nodes[0].score))
-
-        if answer.source_nodes[0].score < RETRIEVAL_THRESHOLD:
-            answer = OUT_OF_DOMAIN_RESPONSE
-    except:
-        answer = ERROR_RESPONSE
-
-    print("Text Answer:")
-    print(answer)
-
-    response = generate_lex_response(event, {}, "Fulfilled", answer)
-    jsonified_resp = json.loads(json.dumps(response, default=str))
-    return jsonified_resp
 
 
 def generate_lex_response(intent_request, session_attributes, fulfillment_state, message):
@@ -217,6 +145,100 @@ class CustomLLM(LLM):
         return "custom"
 
 
+# define prompt helper
+max_input_size = 400  # set maximum input size
+num_output = 50  # set number of output tokens
+max_chunk_overlap = 0  # set maximum chunk overlap
+prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
+
+application = app = Flask(__name__)
+# define our LLM
+llm_predictor = LLMPredictor(llm=CustomLLM())
+embed_model = LangchainEmbedding(
+    HuggingFaceEmbeddings(cache_folder="/tmp/HF_CACHE"))
+service_context = ServiceContext.from_defaults(
+    llm_predictor=llm_predictor, prompt_helper=prompt_helper, embed_model=embed_model,
+)
+
+# Download index here
+if not os.path.exists(INDEX_WRITE_LOCATION):
+    os.mkdir(INDEX_WRITE_LOCATION)
+try:
+    s3_client.download_file(
+        S3_INDEX_STORE_BUCKET, "docstore.json", INDEX_WRITE_LOCATION + "/docstore.json")
+    s3_client.download_file(
+        S3_INDEX_STORE_BUCKET, "index_store.json", INDEX_WRITE_LOCATION + "/index_store.json")
+    s3_client.download_file(S3_INDEX_STORE_BUCKET, "vector_store.json",
+                            INDEX_WRITE_LOCATION + "/vector_store.json")
+
+    # load index
+    storage_context = StorageContext.from_defaults(
+        persist_dir=INDEX_WRITE_LOCATION)
+    index = load_index_from_storage(
+        storage_context, service_context=service_context)
+    logger.info("Index successfully loaded")
+except ClientError as e:
+    logger.error(e)
+    print("ERROR LOADING/READING INDEX")
+
+retriever = VectorIndexRetriever(
+    service_context=service_context,
+    index=index,
+    similarity_top_k=5,
+    vector_store_query_mode=VectorStoreQueryMode.DEFAULT,
+    alpha=0.5,
+)
+
+# configure response synthesizer
+synth = ResponseSynthesizer.from_args(
+    response_mode="simple_summarize",
+    service_context=service_context
+)
+
+
+@app.route('/', methods=['GET'])
+def heartbeat():
+    return "<html><body>Alive and well!</body></html>"
+
+
+@app.route('/predict', methods=['GET'])
+def query_llm():
+
+    query = request.args.get('query')
+    if not query:
+        logging.error("An invalid request was submitted to the API.")
+        abort(400)
+
+    logging.info("Processing new request: " + query)
+
+    input_text = query
+
+    print("Query:")
+    print(query)
+
+    query_engine = RetrieverQueryEngine(
+        retriever=retriever, response_synthesizer=synth)
+    query_input = query
+
+    try:
+        answer = query_engine.query(query_input)
+        print("Score:")
+        print(str(answer.source_nodes[0].score))
+
+        if answer.source_nodes[0].score < RETRIEVAL_THRESHOLD:
+            answer = OUT_OF_DOMAIN_RESPONSE
+    except:
+        answer = ERROR_RESPONSE
+
+    print("Text Answer:")
+    print(answer)
+
+    json_answer = {'response': str(answer)}
+
+    jsonified_resp = json.loads(json.dumps(json_answer, default=str))
+    return jsonified_resp
+
+
 def initialize_cache():
     if not os.path.exists("/tmp/TRANSFORMERS_CACHE"):
         os.mkdir("/tmp/TRANSFORMERS_CACHE")
@@ -226,16 +248,9 @@ def initialize_cache():
 
 
 def main():
-    """
-    Test the function when called from the commandline.
-    """
-
-    handler({"inputTranscript": "How do I change the oil?"}, {})
+    # app.run(debug=False, use_reloader=False)
+    app.run(debug=False, use_reloader=False, host="127.0.0.1")
 
 
 if __name__ == '__main__':
-    os.environ["DEFAULT_REGION"] = ""
-    os.environ["DEFAULT_ACCOUNT"] = ""
-    os.environ["S3_SOURCE_DOCUMENTS_BUCKET"] = ""
-    os.environ["SAGEMAKER_MODEL_ENDPOINT_NAME"] = ""
     main()
