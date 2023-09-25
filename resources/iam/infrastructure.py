@@ -103,3 +103,24 @@ class IAMRoles(Construct):
                 actions=["ecr:GetAuthorizationToken", "ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer", "logs:CreateLogStream", "logs:PutLogEvents"],
                 resources=["*"])
         )
+
+        self.lex_iam_user = iam.User(self, f"{constants.CDK_APP_NAME}-lex-teams-integration-iam-user", 
+            user_name=f"{constants.CDK_APP_NAME}-lex-teams-integration-iam-user"
+        )
+
+        
+        self.lex_iam_user.add_to_policy(
+            iam.PolicyStatement( 
+                actions=[
+                    "lex:PostContent",
+                    "lex:PostText",
+                    "lex:PutSession",
+                    "lex:GetSession",
+                    "lex:DeleteSession",
+                    "lex:RecognizeText",
+                    "lex:RecognizeUtterance",
+                    "lex:StartConversation"
+                    ],
+                resources=["*"])
+        )
+
