@@ -9,8 +9,12 @@ from aws_cdk import Duration
 from constructs import Construct
 
 class LambdaFunctions(Construct):
-    def __init__(self, scope: Construct, id_: str, lambda_role: iam.IRole, llm_service_parameter: str, **kwargs):
+    def __init__(self, scope: Construct, id_: str, vpcid: str, lambda_role: iam.IRole, llm_service_parameter: str, **kwargs):
         super().__init__(scope, id_)
+
+        vpc = ec2.Vpc.from_lookup(self, "VPC",
+            vpc_id =vpcid
+        )
 
         # # lambda function for on demand index creation
         # self.build_index_function = lambdafunction.DockerImageFunction(self, f"{constants.CDK_APP_NAME}-indexer-lambda-function", 
@@ -39,6 +43,11 @@ class LambdaFunctions(Construct):
              environment={
                     'LLM_SERVICE_ENDPOINT_PARAMETER': llm_service_parameter
             },
+            vpc=vpc,
+            vpc_subnets=ec2.SubnetSelection(
+                subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS
+            ),
+            allow_public_subnet=False,
             role=lambda_role,
             ephemeral_storage_size=cdk.Size.mebibytes(512),
             memory_size=512,

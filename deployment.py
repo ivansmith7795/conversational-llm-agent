@@ -28,5 +28,5 @@ class SolutionResources(Stage):
         iam = IAMRoles(solution_infrastack, f"{constants.CDK_APP_NAME}-iam-roles", constants.VPC_ID, s3.s3_index_store.bucket_arn, s3.s3_source_documents_bucket.bucket_arn, ssm.llm_service_ip_param.parameter_arn)
         ecr = ECRImages(solution_infrastack,  f"{constants.CDK_APP_NAME}-ecr-images")
         ecs = ECSCluster(solution_infrastack,  f"{constants.CDK_APP_NAME}-ecs-tasks", constants.VPC_ID, ecr.indexer.image_uri, iam.indexer_execution_iam_role, iam.indexer_task_iam_role, ecr.llm.image_uri, iam.llm_execution_iam_role, iam.llm_task_iam_role)
-        lambdas = LambdaFunctions(solution_infrastack,  f"{constants.CDK_APP_NAME}-lambda-functions", iam.lambda_role, ssm.llm_service_ip_param.parameter_name)
+        lambdas = LambdaFunctions(solution_infrastack,  f"{constants.CDK_APP_NAME}-lambda-functions", constants.VPC_ID, iam.lambda_role, ssm.llm_service_ip_param.parameter_name)
         lex = LexBots(solution_infrastack,  f"{constants.CDK_APP_NAME}-lex-bots", lambdas.inference_function.function_arn, iam.lex_role.role_arn)

@@ -28,6 +28,23 @@ class IAMRoles(Construct):
                 ])
         )
 
+        self.lambda_role.add_to_policy(
+            iam.PolicyStatement( 
+                actions=[
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterface",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                    ],
+                resources=[
+                    "*"
+                ])
+        )
+
         # Indexer task role #
         self.indexer_task_iam_role = iam.Role(self, f"{constants.CDK_APP_NAME}-indexer-task-role",
             role_name=f"{constants.CDK_APP_NAME}-indexer-task-role",

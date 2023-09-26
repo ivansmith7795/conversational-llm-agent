@@ -17,9 +17,9 @@ def find_repo_branch(account_id):
 def find_VPCID(account_id):
      match account_id:
           case "413034898429":
-               return "vpc-022ff188960f8a787"
+               return "vpc-0284ec975b459d347"
           case _:
-               return "vpc-022ff188960f8a787"
+               return "vpc-0284ec975b459d347"
 
 
 def find_CodeStarARN(account_id):
