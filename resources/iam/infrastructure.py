@@ -144,7 +144,8 @@ class IAMRoles(Construct):
 
 
          ### Azure Teams role for interacting with the Lex app ###
-        self.lex_iam_role = iam.Role(self, f"{constants.CDK_APP_NAME}-lex-teams-integration-iam-role", 
+        self.lex_iam_role = iam.Role(self, f"{constants.CDK_APP_NAME}-lex-teams-integration-role", 
+             role_name=f"{constants.CDK_APP_NAME}-lex-teams-integration-role",
              assumed_by=iam.ArnPrincipal(self.lex_iam_user.user_arn)
         )
 
