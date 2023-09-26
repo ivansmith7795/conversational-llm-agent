@@ -35,7 +35,7 @@ class IAMRoles(Construct):
                     "logs:CreateLogStream",
                     "logs:PutLogEvents",
                     "ec2:CreateNetworkInterface",
-                    "ec2:DescribeNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
                     "ec2:DeleteNetworkInterface",
                     "ec2:AssignPrivateIpAddresses",
                     "ec2:UnassignPrivateIpAddresses"
