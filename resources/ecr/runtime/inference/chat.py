@@ -47,7 +47,7 @@ def handler(event, context):
     print("Lex Response:")
     print(lex_response)
 
-    jsonified_resp = json.loads(json.dumps(response, default=str))
+    jsonified_resp = json.loads(json.dumps(lex_response, default=str))
 
     return jsonified_resp
 
